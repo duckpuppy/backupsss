@@ -11,7 +11,7 @@ describe Backupsss::Backup, :ignore_stdout do
   let(:sm)          { 1024 * 1024 * 100 }
   let(:lg)          { 1024 * 1024 * 150 }
   let(:max_size)    { sm }
-  let(:upload_id)   { rand(100_000).to_s }
+  let(:upload_id)   { 'AvErYV3rYv3RYveryVERYLooOOOooOOOooooOO000ngUpl0@d!d!!!' }
   let(:aws_stubs)   { {} }
   let(:config_hash) do
     {
@@ -107,7 +107,7 @@ describe Backupsss::Backup, :ignore_stdout do
       context 'while uploading parts' do
         it 'informs about activity' do
           infos = (1..2).map do |i|
-            "#{upload_id}: Uploading part number #{i}"
+            "Uploading part number #{i} : #{upload_id}"
           end
 
           expect { backup.put_file(file) }
@@ -186,7 +186,7 @@ describe Backupsss::Backup, :ignore_stdout do
           end
 
           it 'informs about failure with offending part number' do
-            info = "#{upload_id}: Failed to upload part number 1"
+            info = "Failed to upload part number 1 : #{upload_id}"
 
             expect { backup.put_file(file) }
               .to output(/#{info}/).to_stdout
@@ -199,7 +199,7 @@ describe Backupsss::Backup, :ignore_stdout do
           end
 
           it 'informs about aborting remaining parts' do
-            infos = "#{upload_id}: Aborting remaining parts"
+            infos = "Aborting remaining parts : #{upload_id}"
 
             expect { backup.put_file(file) }
               .to output(/#{infos}/).to_stdout
@@ -216,7 +216,7 @@ describe Backupsss::Backup, :ignore_stdout do
               .with(hash_including(params)).once
 
             expect { backup.put_file(file) }
-              .to output(/#{upload_id}: Aborting multipart upload/).to_stdout
+              .to output(/Aborting multipart upload : #{upload_id}/).to_stdout
           end
         end
       end

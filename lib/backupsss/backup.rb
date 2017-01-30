@@ -53,7 +53,7 @@ module Backupsss
     end
 
     def abort_multipart_message(error, upload_id)
-      "#{error}\n#{upload_id}: Aborting multipart upload"
+      "#{error}\nAborting multipart upload : #{upload_id}"
     end
 
     def multi_upload(file)
@@ -74,9 +74,9 @@ module Backupsss
     def upload_parts(file, upload_id)
       Parallel.map(1..part_count(file), in_threads: 10) do |part|
         bail_upload_part_on_fail(part, upload_id) do
-          $stdout.puts "#{upload_id}: Uploading part number #{part}\n"
+          $stdout.puts "Uploading part number #{part} : #{upload_id}\n"
           r = client.upload_part(upload_part_params(file, part, upload_id))
-          success_msg = "#{upload_id}: Completed uploading part number #{part}"
+          success_msg = "Completed uploading part number #{part} : #{upload_id}"
           r.on_success { $stdout.puts success_msg }
 
           { etag: r.etag, part_number: part }
@@ -94,9 +94,9 @@ module Backupsss
     def bail_upload_part_on_fail(part, upload_id)
       yield
     rescue StandardError => e
-      output = ["#{upload_id}: Failed to upload part number #{part}"]
+      output = ["Failed to upload part number #{part} : #{upload_id}"]
       output << "because of #{e.message}"
-      output << "#{upload_id}: Aborting remaining parts"
+      output << "Aborting remaining parts : #{upload_id}"
       raise output.join("\n")
     end
 
