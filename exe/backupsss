@@ -1,4 +1,6 @@
 #!/usr/bin/env ruby
 
 require 'backupsss'
+$stdout.sync = true
+$stderr.sync = true
 Backupsss.run
