@@ -69,8 +69,8 @@ module Backupsss
         begin
           call
         rescue => exc
-          STDERR.puts "ERROR - backup failed: #{exc.message}"
-          STDERR.puts exc.backtrace.join("\n\t")
+          $stderr.puts "ERROR - backup failed: #{exc.message}"
+          $stderr.puts exc.backtrace.join("\n\t")
         end
       end
       scheduler.join
