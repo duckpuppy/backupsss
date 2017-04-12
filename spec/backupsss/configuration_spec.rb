@@ -3,10 +3,20 @@ require 'backupsss/configuration'
 
 describe Backupsss::Configuration do
   context '#initialize' do
-    describe 'missing attributes' do
+    describe 'attributes' do
       let(:invalid_args) do
         {
-          s3_bucket:        'a_bucket',
+          s3_bucket_prefix: 'mah_bucket_key',
+          backup_src_dir:   '/local/path',
+          backup_dest_dir:  '/backup',
+          backup_freq:      '0 * * * *',
+          aws_region:       'us-east-1'
+        }
+      end
+
+      let(:no_schedule_args) do
+        {
+          s3_bucket:        'mah_bucket',
           s3_bucket_prefix: 'mah_bucket_key',
           backup_src_dir:   '/local/path',
           backup_dest_dir:  '/backup',
@@ -14,7 +24,12 @@ describe Backupsss::Configuration do
         }
       end
 
-      let(:missing_arg) { 'backup_freq' }
+      let(:missing_arg) { 's3_bucket' }
+
+      it 'does not raise if backup_freq is not supplied' do
+        expect { Backupsss::Configuration.new(no_schedule_args) }
+          .to_not raise_error(ArgumentError)
+      end
 
       it 'raises ArgumentError when attributes are missing' do
         expect { Backupsss::Configuration.new(invalid_args) }
