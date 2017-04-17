@@ -40,7 +40,7 @@ module Backupsss
     end
 
     def throwout_nils(attrs)
-      attrs.reject { |k, v| v.nil? && k != :backup_freq  }
+      attrs.reject { |k, v| v.nil? && k != :backup_freq }
     end
 
     def attrs
