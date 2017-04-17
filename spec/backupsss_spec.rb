@@ -7,55 +7,95 @@ describe Backupsss do
     expect(Backupsss::VERSION).not_to be nil
   end
 
-  describe '#run' do
-    let(:scheduler) { double(Rufus::Scheduler) }
-    let(:config_hash) do
-      {
-        s3_bucket_prefix: 'some_prefix',
-        s3_bucket: 's3://some_bucket',
-        filename: filename,
-        backup_freq: '0 * * * *'
-      }
-    end
-    let(:subject) do
-      b = Backupsss
-      dbl_conf = double
-      allow(dbl_conf).to receive(:backup_freq).and_return('0 * * * *')
-      b.instance_variable_set(:@config, dbl_conf)
-      b
-    end
-    it 'sets the cron target to #call and calls #join' do
-      allow(Rufus::Scheduler).to receive(:new).and_return(scheduler)
-      allow(scheduler).to receive(:cron) { |&block| block.call }
-      allow(scheduler).to receive(:join)
-      allow(subject).to receive(:call)
-      allow(STDERR).to receive(:puts)
+  describe Backupsss::Runner do
+    describe '#new' do
+      before do
+        stub_const(
+          'ENV',
+          'S3_BUCKET'        => 'mah_bucket',
+          'S3_BUCKET_PREFIX' => 'mah_bucket_key',
+          'BACKUP_SRC_DIR'   => '/local/path',
+          'BACKUP_DEST_DIR'  => '/backup',
+          'BACKUP_FREQ'      => '0 * * * *',
+          'AWS_REGION'       => 'us-east-1',
+          'REMOTE_RETENTION' => '2'
+        )
+      end
 
-      expect(Rufus::Scheduler).to receive(:new).once.ordered
-      expect(scheduler).to receive(:cron).once.ordered
-        .with('0 * * * *', blocking: true)
-      expect(subject).to receive(:call).once.ordered
-      expect(scheduler).to receive(:join).once.ordered
-      expect(STDERR).to_not receive(:puts)
-      subject.run
-    end
-    it 'rescues from exceptions and writes a message to STDERR' do
-      allow(Rufus::Scheduler).to receive(:new).and_return(scheduler)
-      allow(scheduler).to receive(:cron) { |&block| block.call }
-      allow(scheduler).to receive(:join)
-      allow(subject).to receive(:call).and_raise(RuntimeError, 'myerror')
-      allow(STDERR).to receive(:puts)
+      subject { Backupsss::Runner.new.config }
 
-      expect(Rufus::Scheduler).to receive(:new).once.ordered
-      expect(scheduler).to receive(:cron).once.ordered
-        .with('0 * * * *', blocking: true)
-      expect(subject).to receive(:call).once.ordered
-      expect(STDERR).to receive(:puts).once.ordered
-        .with('ERROR - backup failed: myerror')
-      expect(STDERR).to receive(:puts).once.ordered
-        .with(/`block in and_raise'/)
-      expect(scheduler).to receive(:join).once.ordered
-      subject.run
+      it { is_expected.to be_kind_of(Backupsss::Configuration) }
+    end
+
+    describe '#run' do
+      let(:scheduler) { instance_double(Rufus::Scheduler) }
+
+      before do
+        allow(Rufus::Scheduler).to receive(:new).and_return(scheduler)
+        allow(scheduler).to receive(:cron)
+        allow(scheduler).to receive(:join)
+      end
+
+      describe 'has schedule' do
+        before do
+          stub_const(
+            'ENV',
+            'S3_BUCKET'        => 'mah_bucket',
+            'S3_BUCKET_PREFIX' => 'mah_bucket_key',
+            'BACKUP_SRC_DIR'   => '/local/path',
+            'BACKUP_DEST_DIR'  => '/backup',
+            'BACKUP_FREQ'      => '0 * * * *',
+            'AWS_REGION'       => 'us-east-1',
+            'REMOTE_RETENTION' => '2'
+          )
+
+        end
+
+        it 'should notify running scheduled job' do
+          msg = "Schedule provided, running with #{ENV['BACKUP_FREQ']}\n"
+
+          expect{subject.run}.to output(msg).to_stdout
+        end
+
+        it "should call scheduler's cron and join methods" do
+          expect(scheduler).to receive(:cron).with(
+            ENV['BACKUP_FREQ'], blocking: true
+          )
+          expect(scheduler).to receive(:join)
+
+          subject.run
+        end
+      end
+
+      describe 'has no schedule' do
+        before do
+          stub_const(
+            'ENV',
+            'S3_BUCKET'        => 'mah_bucket',
+            'S3_BUCKET_PREFIX' => 'mah_bucket_key',
+            'BACKUP_SRC_DIR'   => '/local/path',
+            'BACKUP_DEST_DIR'  => '/backup',
+            'AWS_REGION'       => 'us-east-1',
+            'REMOTE_RETENTION' => '2'
+          )
+
+          allow(subject).to receive(:call)
+        end
+
+        it 'should notify running one time job' do
+          msg = "No Schedule provided, running one time task\n"
+
+          expect{subject.run}.to output(msg).to_stdout
+        end
+
+        it 'rescues from exceptions and writes a message to STDERR' do
+          err_msg = 'ERROR - backup failed: myerror'
+          allow(subject).to receive(:call).and_raise(RuntimeError, 'myerror')
+
+          expect{subject.run}.to output(/#{err_msg}/).to_stderr
+        end
+
+      end
     end
   end
 end
