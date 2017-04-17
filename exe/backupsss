@@ -3,4 +3,4 @@
 require 'backupsss'
 $stdout.sync = true
 $stderr.sync = true
-Backupsss.run
+Backupsss::Runner.new.run
