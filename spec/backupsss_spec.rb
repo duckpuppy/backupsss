@@ -48,13 +48,12 @@ describe Backupsss do
             'AWS_REGION'       => 'us-east-1',
             'REMOTE_RETENTION' => '2'
           )
-
         end
 
         it 'should notify running scheduled job' do
           msg = "Schedule provided, running with #{ENV['BACKUP_FREQ']}\n"
 
-          expect{subject.run}.to output(msg).to_stdout
+          expect { subject.run }.to output(msg).to_stdout
         end
 
         it "should call scheduler's cron and join methods" do
@@ -85,16 +84,15 @@ describe Backupsss do
         it 'should notify running one time job' do
           msg = "No Schedule provided, running one time task\n"
 
-          expect{subject.run}.to output(msg).to_stdout
+          expect { subject.run }.to output(msg).to_stdout
         end
 
         it 'rescues from exceptions and writes a message to STDERR' do
           err_msg = 'ERROR - backup failed: myerror'
           allow(subject).to receive(:call).and_raise(RuntimeError, 'myerror')
 
-          expect{subject.run}.to output(/#{err_msg}/).to_stderr
+          expect { subject.run }.to output(/#{err_msg}/).to_stderr
         end
-
       end
     end
   end
