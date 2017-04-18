@@ -10,10 +10,19 @@ require 'backupsss/configuration'
 
 # A utility for backing things up to S3.
 module Backupsss
-  class << self
-    def config
-      @config ||= Backupsss::Configuration.new
+  # A Class for running this backup utility
+  class Runner
+    attr_accessor :config
+
+    def initialize
+      @config = Backupsss::Configuration.new
     end
+
+    def run
+      config.backup_freq ? run_scheduled : run_oneshot
+    end
+
+    private
 
     def call
       push_backup(*prep_for_backup)
@@ -63,17 +72,25 @@ module Backupsss
       remote_janitor.rm_garbage(remote_janitor.sift_trash)
     end
 
-    def run
+    def run_scheduled
+      $stdout.puts "Schedule provided, running with #{config.backup_freq}"
+
       scheduler = Rufus::Scheduler.new
-      scheduler.cron(config.backup_freq, blocking: true) do
-        begin
-          call
-        rescue => exc
-          $stderr.puts "ERROR - backup failed: #{exc.message}"
-          $stderr.puts exc.backtrace.join("\n\t")
-        end
-      end
+      scheduler.cron(config.backup_freq, blocking: true) { make_call }
       scheduler.join
+    end
+
+    def run_oneshot
+      $stdout.puts 'No Schedule provided, running one time task'
+
+      make_call
+    end
+
+    def make_call
+      call
+    rescue => exc
+      $stderr.puts "ERROR - backup failed: #{exc.message}"
+      $stderr.puts exc.backtrace.join("\n\t")
     end
   end
 end

@@ -42,5 +42,5 @@ Gem::Specification.new do |spec|
 
   spec.add_runtime_dependency 'aws-sdk', '~> 2.7.0'
   spec.add_runtime_dependency 'parallel', '~> 1.10.0'
-  spec.add_runtime_dependency 'rufus-scheduler', '~> 3.3.2'
+  spec.add_runtime_dependency 'rufus-scheduler', '3.4.0'
 end
