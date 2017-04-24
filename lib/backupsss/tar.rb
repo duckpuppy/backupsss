@@ -76,8 +76,8 @@ module Backupsss
       File.exist?(File.open(dir)) || raise_sys_err(dir, Errno::ENOENT::Errno)
     end
 
-    def file_changed?(signal_int, err)
-      signal_int == 1 && err.match(/file changed as we read it/)
+    def file_changed?(err)
+      err.match(/file changed as we read it/)
     end
 
     def src_readable?
@@ -85,7 +85,7 @@ module Backupsss
     end
 
     def success_cases(signal_int, err)
-      clean_exit(signal_int) || file_changed?(signal_int, err)
+      clean_exit(signal_int) || file_changed?(err)
     end
 
     def raise_sys_err(dir, err)

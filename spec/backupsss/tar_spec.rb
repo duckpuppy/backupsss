@@ -143,15 +143,17 @@ describe Backupsss::Tar, :ignore_stdout do
       it { is_expected.to raise_error(/ERROR: tar.* exited #{status.to_i}/) }
     end
 
-    context 'when status is 1 with valid warning' do
-      let(:status)          { Status.new(1, 'pid 16145 SIGHUP (signal 1)') }
+    context 'when error is a valid warning' do
+      let(:exit_code)       { 1 }
+      let(:status_msg)      { 'pid 8 exit 1' }
+      let(:status)          { Status.new(exit_code, status_msg) }
       let(:err)             { 'file: file changed as we read it' }
       let(:expected_output) do
         [
           "command.......tar -zcvf\n",
           "stderr........#{err}\n",
-          "status........pid 16145 SIGHUP (signal 1)\n",
-          "exit code.....1\n"
+          "status........#{status_msg}\n",
+          "exit code.....#{exit_code}\n"
         ].join
       end
 
