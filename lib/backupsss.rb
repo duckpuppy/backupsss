@@ -90,8 +90,6 @@ module Backupsss
       call
     rescue => exc
       abort("ERROR - backup failed: #{exc.message}\n#{exc.backtrace.join("\n\t")}")
-      # $stderr.puts "ERROR - backup failed: #{exc.message}"
-      # $stderr.puts exc.backtrace.join("\n\t")
     end
   end
 end
