@@ -87,11 +87,14 @@ describe Backupsss do
           expect { subject.run }.to output(msg).to_stdout
         end
 
-        it 'rescues from exceptions and writes a message to STDERR' do
+        it 'exits with a non-zero exit and writes a message to STDERR' do
           err_msg = 'ERROR - backup failed: myerror'
           allow(subject).to receive(:call).and_raise(RuntimeError, 'myerror')
 
-          expect { subject.run }.to output(/#{err_msg}/).to_stderr
+          expect { subject.run }.to raise_error { |error|
+            expect(error).to be_a(SystemExit)
+            expect(error.status).to_not equal(0)
+          }.and output(/#{err_msg}/).to_stderr
         end
       end
     end
