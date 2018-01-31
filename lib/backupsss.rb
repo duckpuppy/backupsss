@@ -90,6 +90,7 @@ module Backupsss
       call
     rescue => exc
       error_message = "ERROR - backup failed: #{exc.message}\n#{exc.backtrace.join("\n\t")}"
+
       if config.backup_freq
         $stderr.puts error_message
       else

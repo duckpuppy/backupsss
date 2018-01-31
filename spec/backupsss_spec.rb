@@ -64,6 +64,15 @@ describe Backupsss do
 
           subject.run
         end
+
+        RSpec::Matchers.define_negated_matcher :not_raise_error, :raise_error
+        it 'should not exit and should report errors to stderr' do
+          err_msg = 'ERROR - backup failed: myerror'
+          allow(subject).to receive(:call).and_raise(RuntimeError, 'myerror')
+
+          expect { subject.send :make_call }.to not_raise_error
+            .and output(/#{err_msg}/).to_stderr
+        end
       end
 
       describe 'has no schedule' do
