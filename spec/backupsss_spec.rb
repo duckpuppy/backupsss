@@ -64,6 +64,15 @@ describe Backupsss do
 
           subject.run
         end
+
+        RSpec::Matchers.define_negated_matcher :not_raise_error, :raise_error
+        it 'should not exit and should report errors to stderr' do
+          err_msg = 'ERROR - backup failed: myerror'
+          allow(subject).to receive(:call).and_raise(RuntimeError, 'myerror')
+
+          expect { subject.send :make_call }.to not_raise_error
+            .and output(/#{err_msg}/).to_stderr
+        end
       end
 
       describe 'has no schedule' do
@@ -87,11 +96,14 @@ describe Backupsss do
           expect { subject.run }.to output(msg).to_stdout
         end
 
-        it 'rescues from exceptions and writes a message to STDERR' do
+        it 'exits with a non-zero exit and writes a message to STDERR' do
           err_msg = 'ERROR - backup failed: myerror'
           allow(subject).to receive(:call).and_raise(RuntimeError, 'myerror')
 
-          expect { subject.run }.to output(/#{err_msg}/).to_stderr
+          expect { subject.run }.to raise_error { |error|
+            expect(error).to be_a(SystemExit)
+            expect(error.status).to_not equal(0)
+          }.and output(/#{err_msg}/).to_stderr
         end
       end
     end

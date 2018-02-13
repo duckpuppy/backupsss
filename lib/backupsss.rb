@@ -89,8 +89,14 @@ module Backupsss
     def make_call
       call
     rescue => exc
-      $stderr.puts "ERROR - backup failed: #{exc.message}"
-      $stderr.puts exc.backtrace.join("\n\t")
+      error_message =
+        "ERROR - backup failed: #{exc.message}\n#{exc.backtrace.join("\n\t")}"
+
+      if config.backup_freq
+        $stderr.puts error_message
+      else
+        abort(error_message)
+      end
     end
   end
 end
