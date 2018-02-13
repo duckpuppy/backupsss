@@ -89,7 +89,7 @@ module Backupsss
     def make_call
       call
     rescue => exc
-      error_message = 
+      error_message =
         "ERROR - backup failed: #{exc.message}\n#{exc.backtrace.join("\n\t")}"
 
       if config.backup_freq
